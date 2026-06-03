@@ -17,9 +17,11 @@ def string_flattener(s):
             i += 1
     return code
 
-results=[]
-data_file = pd.read_csv("data.csv")
-for _, data in data_file.iloc[2653:].iterrows():
+# results=[]
+# input file path here
+file_path = ""
+data_file = pd.read_csv(file_path)
+for _, data in data_file.iterrows():
     html= requests.get(data["prod_page_url"])
     soup = BeautifulSoup(html.text, "html.parser")
     div=soup.select_one("#productDetail")
