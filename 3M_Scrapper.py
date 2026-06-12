@@ -35,8 +35,14 @@ def extract_html(url):
     except requests.exceptions.RequestException as e:
         logger.error(f"Request failed for {url}: {e}")
         return None
-
-
+def cleaner(dims: str):
+    try:
+        matches = re.findall(r'\d+(?:-\d+)?', dims)
+        return matches[0] if matches else logger.error(f"Nonetype for '{dims}': {e}")
+    except Exception as e:
+        logger.error(f"Cleaner failed for '{dims}': {e}")
+        return
+    
 def parse_price_grid(price_grid, i=25):
     results = []
     try:
@@ -52,7 +58,8 @@ def parse_price_grid(price_grid, i=25):
                 return results
 
             quant_row = qty_row.find_all("td")
-            quantities = [td.get_text(strip=True) for td in quant_row[1:-2]]
+            # quantities = [td.get_text(strip=True) for td in quant_row[1:-2]]
+            quantities = [cleaner(td.get_text(strip=True)) for td in quant_row[1:-2]]
 
             next_row = qty_row.find_next_sibling("tr")
             while next_row and "tableSubHeader" not in next_row.get("class", []):
@@ -66,6 +73,7 @@ def parse_price_grid(price_grid, i=25):
                         code = []
                     if prices:
                         tag = next_row.find("td").get_text(strip=True)
+
                         results.append({
                             "tag": f"{tag}_{i}-sheets",
                             "quantities": quantities,
@@ -136,6 +144,10 @@ def process_row(row, writer):
             ]
 
             for idx, (qty, price) in enumerate(numeric_pairs):
+                if re.search(r"promo", row_data["tag"], re.IGNORECASE):
+                    logger.info("PROMO detected and removed")
+                    continue
+
                 if len(row_data["code"]) == 1:
                     code_val = row_data["code"][0]
                 else:
@@ -162,7 +174,7 @@ def process_row(row, writer):
 def main():
     try:
         with open("3M_Marketing.csv", newline="", encoding="utf-8") as infile, \
-             open("3M_prices2.csv", "w", newline="", encoding="utf-8", buffering=1) as outfile:
+             open("3M_prices3.csv", "w", newline="", encoding="utf-8", buffering=1) as outfile:
 
             reader = csv.DictReader(infile)
             fieldnames = list(reader.fieldnames) + ["Group_name", "quantity", "price", "code"]
