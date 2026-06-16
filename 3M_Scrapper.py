@@ -63,7 +63,8 @@ def parse_price_grid(price_grid, i=25):
 
             next_row = qty_row.find_next_sibling("tr")
             while next_row and "tableSubHeader" not in next_row.get("class", []):
-                tds = next_row.find_all("td", {"align": "center"})
+                tds = [d for d in next_row.find_all("td", {"align": "center"}) if d.get("style") !=
+                       'text-decoration: line-through' ]
                 if len(tds) > 1:
                     prices = [td.get_text(strip=True) for td in tds[0:-2]]
                     try:
@@ -73,7 +74,7 @@ def parse_price_grid(price_grid, i=25):
                         code = []
                     if prices:
                         tag = next_row.find("td").get_text(strip=True)
-
+                    if tag != "":
                         results.append({
                             "tag": f"{tag}_{i}-sheets",
                             "quantities": quantities,
@@ -173,8 +174,8 @@ def process_row(row, writer):
 
 def main():
     try:
-        with open("3M_Marketing.csv", newline="", encoding="utf-8") as infile, \
-             open("3M_prices3.csv", "w", newline="", encoding="utf-8", buffering=1) as outfile:
+        with open("3M_prices4.csv", newline="", encoding="utf-8") as infile, \
+             open("3M_prices5.csv", "w", newline="", encoding="utf-8", buffering=1) as outfile:
 
             reader = csv.DictReader(infile)
             fieldnames = list(reader.fieldnames) + ["Group_name", "quantity", "price", "code"]
